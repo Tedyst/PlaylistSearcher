@@ -12,6 +12,8 @@ def get_playlist_tracks(client, username, uri):
         song = Song(i['track']['name'], i['track']['artists'][0]['name'])
         if "Various " in song.main_artist:
             song.main_artist = i['track']['artists'][1]['name']
+        song.name = song.name.split('-')[0]
+        song.name = song.name.split('(')[0]
         tracks.append(song)
     while results['next']:
         results = client.next(results)
@@ -19,5 +21,7 @@ def get_playlist_tracks(client, username, uri):
             song = Song(i['track']['name'], i['track']['artists'][0]['name'])
             if "Various " in song.main_artist:
                 song.main_artist = i['track']['artists'][1]['name']
+            song.name = song.name.split('-')[0]
+            song.name = song.name.split('(')[0]
             tracks.append(song)
     return tracks

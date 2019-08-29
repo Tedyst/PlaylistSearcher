@@ -17,6 +17,9 @@ genius.remove_section_headers = True
 genius.skip_non_songs = True
 genius.excluded_terms = ["(Remix)", "(Live)"]
 
+def stripartist(artist):
+    return artist.split('&')[0].split(',')[0].replace(' ', '').lower()
+
 def get_lyrics_Genius(name, artist):
     song = genius.search_song(name, artist.split('&')[
                               0].replace(' ', '').lower())
@@ -25,7 +28,7 @@ def get_lyrics_Genius(name, artist):
         return None
     
     # Making every change possible to make the strings match, while still being reasonable
-    if fuzz.ratio(artist.split('&')[0].replace(' ', '').lower(), song.artist.split('&')[0].replace(' ', '').lower()) > 80:
+    if fuzz.ratio(stripartist(artist), stripartist(song.artist)) > 80:
         return song.lyrics
 
     print("Not found Genius lyrics for", name, artist)
