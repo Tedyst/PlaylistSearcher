@@ -1,4 +1,4 @@
-from bottle import route, run, get, response, request, redirect
+from bottle import route, run, get, response, request, redirect, template
 import spotipy
 from spotipy import oauth2
 from config import *
@@ -12,13 +12,16 @@ def index():
     access_token = request.get_cookie("token")
     if access_token:
         sp = spotipy.Spotify(access_token)
-        results = sp.current_user()
+        try:
+            results = sp.current_user()
+        except spotipy.client.SpotifyException:
+            redirect("/authorization")
+            return
         username = results['id']
         playlists = sp.user_playlists(username)
-        string = ""
-        for i in playlists['items']:
-            string += i['name']+'<br>'
-        return string
+        # return playlists
+        info = {'playlists': playlists['items']}
+        return template('index.tpl', info)
     else:
         redirect("/authorization")
 
@@ -45,7 +48,6 @@ def authorization():
             access_token = token_info['access_token']
 
     if access_token:
-        print("Access token available! Trying to get user information...")
         response.set_header('Set-Cookie', 'token='+access_token)
         redirect("/")
 
@@ -54,6 +56,29 @@ def authorization():
             'Set-Cookie', 'token=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT')
         return htmlForLoginButton(sp_oauth)
 
+
+@route('/search')
+def search():
+    # Get access token
+    access_token = request.get_cookie("token")
+    sp = None
+    if access_token:
+        sp = spotipy.Spotify(access_token)
+        try:
+            sp.current_user()
+        except spotipy.client.SpotifyException:
+            redirect("/authorization")
+            return
+    else:
+        redirect("/authorization")
+        return
+
+    username = sp.current_user()['id']
+    uri = request.query['text']
+    text = request.query['text']
+    tracks = get_playlist_tracks(sp, username, uri)
+    results = lyricsutils.find_songs(tracks, text)
+    return results
 
 def htmlForLoginButton(sp_oauth):
     auth_url = getSPOauthURI(sp_oauth)
