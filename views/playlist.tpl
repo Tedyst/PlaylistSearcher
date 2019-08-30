@@ -5,6 +5,8 @@
 </head>
 
 <body>
+<a href="/">Back</a>
+<br>
 Found the word <b>{{text}}</b> in:
 % for i in results:
     <br>

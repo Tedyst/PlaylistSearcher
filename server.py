@@ -77,10 +77,15 @@ def search():
     if sp is None:
         redirect("/authorization")
         return
+
     username = sp.current_user()['id']
-    uri = request.query['playlist']
-    text = request.query['text']
-    print(text)
+    try:
+        uri = request.query['playlist']
+        text = request.query['text']
+    except:
+        redirect("/")
+        return
+
     tracks = playlistutils.get_playlist_tracks(sp, username, uri)
     results = lyricsutils.find_songs(tracks, text)
     info = {'results': results, 'text': text}
