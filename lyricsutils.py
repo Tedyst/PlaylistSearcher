@@ -111,7 +111,6 @@ def search_lyrics(name, artist, lyrics, text):
         a = 100
     else:
         a = fuzz.partial_ratio(text, lyrics)
-    print(a,name,artist)
     if a > 80:
         return True
     return False
