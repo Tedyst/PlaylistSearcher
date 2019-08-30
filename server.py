@@ -2,6 +2,8 @@ from bottle import route, run, get, response, request, redirect, template
 import spotipy
 from spotipy import oauth2
 from config import *
+import playlistutils
+import lyricsutils
 
 PORT_NUMBER = 8080
 scope = 'user-library-read playlist-read-private'
@@ -72,13 +74,17 @@ def search():
     else:
         redirect("/authorization")
         return
-
+    if sp is None:
+        redirect("/authorization")
+        return
     username = sp.current_user()['id']
-    uri = request.query['text']
+    uri = request.query['playlist']
     text = request.query['text']
-    tracks = get_playlist_tracks(sp, username, uri)
+    print(text)
+    tracks = playlistutils.get_playlist_tracks(sp, username, uri)
     results = lyricsutils.find_songs(tracks, text)
-    return results
+    info = {'results': results, 'text': text}
+    return template('playlist.tpl', info)
 
 def htmlForLoginButton(sp_oauth):
     auth_url = getSPOauthURI(sp_oauth)

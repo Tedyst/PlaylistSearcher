@@ -107,7 +107,11 @@ def get_lyrics(name, artist):
     return None
 
 def search_lyrics(name, artist, lyrics, text):
-    a = fuzz.partial_ratio(text, lyrics)
+    if text.lower() in lyrics.lower():
+        a = 100
+    else:
+        a = fuzz.partial_ratio(text, lyrics)
+    print(a,name,artist)
     if a > 80:
         return True
     return False
@@ -115,9 +119,9 @@ def search_lyrics(name, artist, lyrics, text):
 def find_songs(tracks, text):
     results = []
     for i in tracks:
-        lyric = lyricsutils.get_lyrics(i.name, i.main_artist)
+        lyric = get_lyrics(i.name, i.main_artist)
         if lyric is not None:
-            if lyricsutils.search_lyrics(i.name, i.main_artist, lyric, text):
+            if search_lyrics(i.name, i.main_artist, lyric, text):
                 print("Found match for", text, "in song", i.name, i.main_artist)
                 results.append(i)
 
