@@ -2,3 +2,4 @@
 cache/
 *.pyc
 config.py
+notfoundsongs.txt
