@@ -6,6 +6,7 @@
 
 <body>
 <a href="/">Back</a>
+Search made in <b>{{elapsed}}</b> seconds
 <br>
 Found the word <b>{{text}}</b> in:
 % for i in results:

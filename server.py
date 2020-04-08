@@ -4,14 +4,17 @@ from spotipy import oauth2
 from config import *
 import playlistutils
 import lyricsutils
+import time
+
 
 PORT_NUMBER = 8080
-scope = 'user-library-read playlist-read-private'
+scope = 'user-library-read playlist-read-private playlist-read-collaborative'
 
 
 @route('/')
 def index():
     access_token = request.get_cookie("token")
+    print(access_token)
     if access_token:
         sp = spotipy.Spotify(access_token)
         try:
@@ -59,6 +62,12 @@ def authorization():
         return htmlForLoginButton(sp_oauth)
 
 
+
+@route('/cache')
+def cache():
+    lyricsutils.get_not_found()
+
+
 @route('/search')
 def search():
     # Get access token
@@ -86,10 +95,13 @@ def search():
         redirect("/")
         return
 
+    inittime = time.time()
     tracks = playlistutils.get_playlist_tracks(sp, username, uri)
     results = lyricsutils.find_songs(tracks, text)
-    info = {'results': results, 'text': text}
+    elapsed = time.time() - inittime
+    info = {'results': results, 'text': text, 'elapsed': elapsed}
     return template('playlist.tpl', info)
+
 
 def htmlForLoginButton(sp_oauth):
     auth_url = getSPOauthURI(sp_oauth)
@@ -102,4 +114,4 @@ def getSPOauthURI(sp_oauth):
     return auth_url
 
 
-run(host='', port=8080)
+run(host='0.0.0.0', port=8080)

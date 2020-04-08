@@ -2,6 +2,11 @@ import lyricsgenius
 import os 
 import youtube_dl
 from fuzzywuzzy import fuzz
+from multiprocessing.dummy import Pool as ThreadPool
+from diskcache import Cache
+
+cache = Cache("cache")
+
 
 # Init things
 ydl_opts = {
@@ -17,8 +22,10 @@ genius.remove_section_headers = True
 genius.skip_non_songs = True
 genius.excluded_terms = ["(Remix)", "(Live)"]
 
+
 def stripartist(artist):
     return artist.split('&')[0].split(',')[0].replace(' ', '').lower()
+
 
 def get_lyrics_Genius(name, artist):
     song = genius.search_song(name, artist.split('&')[
@@ -26,7 +33,7 @@ def get_lyrics_Genius(name, artist):
 
     if song is None:
         return None
-    
+
     # Making every change possible to make the strings match, while still being reasonable
     if fuzz.ratio(stripartist(artist), stripartist(song.artist)) > 80:
         return song.lyrics
@@ -35,6 +42,7 @@ def get_lyrics_Genius(name, artist):
     print("Found only", song.title, song.artist.split('&')[0].replace(' ', ''),
           ", which has", fuzz.ratio(artist.split('&')[0].replace(' ', ''), song.artist.split('&')[0].replace(' ', '')), "% accuracy")
     return None
+
 
 def get_lyrics_youtube(name, artist):
     lyrics = ""
@@ -55,73 +63,65 @@ def get_lyrics_youtube(name, artist):
     print("Downloaded lyrics from youtube description for", name, artist)
     return lyrics
 
-def is_not_found(name, artist):
-    file = open('notfoundsongs.txt', 'r')
-    data = file.read()
-    file.close()
-    if name+' - '+artist in data:
-        return True
-    return False
-
-def add_not_found(name, artist):
-    file = open('notfoundsongs.txt', 'a+')
-    file.write(name+' - '+artist+'\n')
-    file.close()
-    
-
-def cache(name, artist):
-    if (os.path.isfile('cache/' + artist + ' - ' + name)):
-        file = open('cache/' + artist + ' - ' + name, 'r')
-        data = file.read()
-        file.close()
-        return data
-    return None
 
 def get_lyrics(name, artist):
+    print(name, artist)
     # Already found, serve it
-    lyrics_cache = cache(name, artist)
-    if lyrics_cache != None:
-        return lyrics_cache
+    lyrics_cache = cache.get([name, artist])
+    if lyrics_cache is not None:
+        if lyrics_cache[1] is False:
+            return None
+        return lyrics_cache[0]
 
-    # Already searched, skip
-    if is_not_found(name, artist):
-        return None
-    
     # Search on genius
     lyrics_genius = get_lyrics_Genius(name, artist)
-    if lyrics_genius != None:
-        file = open('cache/' + artist + ' - ' + name, 'w')
-        file.write(lyrics_genius)
-        file.close()
+    if lyrics_genius is not None:
+        cache.add([name, artist], [lyrics_genius, True])
         return lyrics_genius
-    
+
     # Search on youtube
     lyrics_youtube = get_lyrics_youtube(name, artist)
-    if lyrics_youtube != None:
-        file = open('cache/' + artist + ' - ' + name, 'w')
-        file.write(lyrics_youtube)
-        file.close()
+    if lyrics_youtube is not None:
+        cache.add([name, artist], [lyrics_youtube, True])
         return lyrics_youtube
 
-    add_not_found(name, artist)
+    cache.add([name, artist], [None, False])
     return None
 
-def search_lyrics(name, artist, lyrics, text):
+
+def search_lyrics(track, text):
+    name = track.name
+    artist = track.main_artist
+    lyrics = get_lyrics(name, artist)
+    if lyrics is None:
+        return None
+    a = 0
     if text.lower() in lyrics.lower():
         a = 100
-    else:
-        a = fuzz.partial_ratio(text, lyrics)
+    # else:
+    #     a = fuzz.partial_ratio(text, lyrics)
     if a > 80:
-        return True
-    return False
+        return track
+    return None
+
 
 def find_songs(tracks, text):
     results = []
-    for i in tracks:
-        lyric = get_lyrics(i.name, i.main_artist)
-        if lyric is not None:
-            if search_lyrics(i.name, i.main_artist, lyric, text):
-                print("Found match for", text, "in song", i.name, i.main_artist)
-                results.append(i)
+    pool = ThreadPool(10)
 
-    return results
+    for i in tracks:
+        results.append(pool.apply_async(search_lyrics, args=(i, text)))
+
+    pool.close()
+    pool.join()
+    result = []
+    for i in range(len(results)):
+        if results[i].get() is not None:
+            result.append(results[i].get())
+    return result
+
+
+def get_not_found():
+    for i in cache:
+        if cache[i][1] is False:
+            print(i)
