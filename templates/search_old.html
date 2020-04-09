@@ -1,0 +1,32 @@
+<html>
+    <head>
+        <title>Asd</title>
+    </head>
+    <body>
+        <div id="result"></div>
+        <script src="//cdn.jsdelivr.net/npm/jquery@3.1.1/dist/jquery.min.js" type="text/javascript"></script>
+        <script>
+            var doRefresh = function() {
+                $.ajax({
+                    url: '{{ url_for("ajax", playlist_id="4IOl8MrXPWvHVxo2NpSxwP", words="dream") }}',
+                    type: 'get',
+                    success: function(data, status) {
+                        console.log(data);
+                        if(data.finished == false) {
+                            setTimeout(doRefresh, 100);
+                        }
+                        result.innerHTML = JSON.stringify(data);
+                    }, error: function(xhr, desc, err) {
+                        console.log(xhr);
+                        console.log("Details: " + desc + "\nError:" + err);
+                    }, complete: function(){    
+                        console.log("Finished");
+                    }
+                })
+            }
+
+            doRefresh();
+
+        </script>
+    </body>
+</html>

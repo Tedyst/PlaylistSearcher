@@ -1,0 +1,27 @@
+<div class="sidebar" data-active-color="rose" data-background-color="black" data-image="{{ url_for('static', filename='img/sidebar-1.jpg') }}">
+    <div class="sidebar-wrapper">
+        <div class="user">
+            <div class="photo">
+                <img src="https://www.gravatar.com/avatar/16c849fbf6376ca3e613b72ba33dc5ea" />
+            </div>
+        </div>
+        
+        <ul class="nav">
+            {% if page == 'search' %}
+                <li class="active">
+                    <a href="{{ url_for('search') }}">
+                        <i class="material-icons">dashboard</i>
+                        <p>Pagina principala</p>
+                    </a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="{{ url_for('search') }}">
+                    <i class="material-icons">dashboard</i>
+                    <p>Pagina principala</p>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>

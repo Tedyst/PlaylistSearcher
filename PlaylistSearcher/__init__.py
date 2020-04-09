@@ -110,6 +110,10 @@ class User(db.Model):
             return self.displayname
         return self.username
 
+    def playlists(self):
+        from PlaylistSearcher.playlist import user_playists
+        return user_playists(self)
+
     def is_authenticated(self):
         return True
 
