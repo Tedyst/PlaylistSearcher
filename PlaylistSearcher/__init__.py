@@ -7,7 +7,6 @@ import PlaylistSearcher.config as config
 from flask_login import LoginManager
 import spotipy
 
-
 APP = Flask(__name__,
             template_folder='../templates',
             static_folder="../static")
@@ -62,13 +61,14 @@ query_queue = []
 
 
 class WordQuery():
-    def __init__(self, user, playlist, words):
+    def __init__(self, user, playlist, words, total):
         self.user = user
         self.playlist = playlist
         self.words = words
         self.result = []
         self.searched = 0
         self.notfound = []
+        self.total = total
 
 
 class User(db.Model):

@@ -17,8 +17,12 @@ def search_words(list_of_songs, words):
             continue
         update_lyrics(song)
         if song.lyrics:
-            re = regex.search(
-                rf'({words}){{e<=3}}', song.lyrics.lower())
+            if len(words) < 8:
+                re = regex.search(
+                    rf'({words}){{e<=1}}', song.lyrics.lower())
+            else:
+                re = regex.search(
+                    rf'({words}){{e<=3}}', song.lyrics.lower())
             if re is not None:
                 result.append(song)
     return song
@@ -36,8 +40,12 @@ def search_thread(query: WordQuery):
             if time.time() - song.last_check < 86400:
                 # Check now, do not create another thread
                 if song.lyrics:
-                    re = regex.search(
-                        rf'({words}){{e<=3}}', song.lyrics.lower())
+                    if len(words) < 8:
+                        re = regex.search(
+                            rf'({words}){{e<=1}}', song.lyrics.lower())
+                    else:
+                        re = regex.search(
+                            rf'({words}){{e<=3}}', song.lyrics.lower())
                     if re is not None:
                         query.result.append(song)
                 else:

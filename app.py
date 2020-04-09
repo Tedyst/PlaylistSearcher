@@ -94,23 +94,24 @@ def ajax(playlist_id, words):
             query = i
             break
     if query is None:
-        query = WordQuery(current_user.id, playlist_id, words)
+        query = WordQuery(current_user.id, playlist_id, words,
+                          len(playlist_tracks(current_user, playlist_id)))
         query_queue.append(query)
         thread = Thread(target=lyricsutils.search_thread,
                         args=[query])
         thread.start()
     result = {
         "finished": True,
+        "total": query.total,
         "searched": query.searched,
         "notfound": [i.__json__() for i in query.notfound],
         "results": [i.__json__() for i in query.result]
     }
-    if query.searched != len(playlist_tracks(current_user, query.playlist)):
+    if query.searched != query.total:
         result["finished"] = False
-    return render_template('dump.html', data=json.dumps(result))
-    # return Response(json.dumps(result),
-    #                 status=200,
-    #                 mimetype='application/json')
+    return Response(json.dumps(result),
+                    status=200,
+                    mimetype='application/json')
 
 
 if __name__ == "__main__":
