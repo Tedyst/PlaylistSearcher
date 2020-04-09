@@ -65,13 +65,13 @@ def search_thread(query: WordQuery):
         threads.append([thread, copysong, song])
 
     for couple in threads:
+        thread.join()
         thread = couple[0]
         song = couple[1]
         originalsong = couple[2]
         originalsong.lyrics = song.lyrics
         originalsong.source = song.source
         originalsong.last_check = song.last_check
-        thread.join()
         if song.lyrics:
             re = regex.search(
                 rf'({words}){{e<=3}}', song.lyrics.lower())

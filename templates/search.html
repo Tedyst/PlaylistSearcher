@@ -67,10 +67,10 @@
                             <h4 class="card-title">Rezultatele cautarii pentru "dream" in playlistul "Dance floor"</h4>
 
                             <div class="col-md-2" id="result-card" style="display:none;">
-                                <div class="card">
-                                    <div class="card-content" href>
-                                        <h6 class="card-title text-center"></h4>
+                                <div class="card" style="min-height: 250px;">
+                                    <div class="card-content align-self-center" href>
                                         <img src="">
+                                        <h6 class="card-title text-center"></h4>
                                     </div>
                                 </div>
                             </div>
@@ -95,8 +95,8 @@
             if (typeof(element) != 'undefined' && element != null)
                 continue;
             var cln = base.cloneNode(true);
-            cln.childNodes[1].childNodes[1].childNodes[1].innerHTML=data.results[song].name;
-            cln.childNodes[1].childNodes[1].childNodes[3].src=data.results[song].image_url;
+            cln.childNodes[1].childNodes[1].childNodes[3].innerHTML=data.results[song].name + "<br>" + data.results[song].artist;
+            cln.childNodes[1].childNodes[1].childNodes[1].src=data.results[song].image_url;
             cln.id = data.results[song].uri;
             cln.setAttribute('onclick','apasare("' + data.results[song].uri + '");' );
             cln.style = "";
