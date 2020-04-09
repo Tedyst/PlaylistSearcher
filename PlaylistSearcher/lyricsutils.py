@@ -1,9 +1,9 @@
 from PlaylistSearcher import APP, Song, WordQuery, db, User
 from PlaylistSearcher.sources import update_lyrics
-from fuzzywuzzy import fuzz
 from PlaylistSearcher.playlist import playlist_tracks
 from threading import Thread
 import time
+import regex
 
 
 def strip_words(words):
@@ -17,8 +17,7 @@ def search_words(list_of_songs, words):
             continue
         update_lyrics(song)
         if song.lyrics:
-            ratio = fuzz.partial_ratio(strip_words(song.lyrics),
-                                       strip_words(words))
+            re = regex.search('(amazing){e<=1}', 'amaging')
             if strip_words(words) in strip_words(song.lyrics):
                 ratio = 100
             if ratio > 80:
@@ -30,7 +29,7 @@ def search_thread(query: WordQuery):
     user = User.query.filter(User.id == query.user).first()
     list_of_songs = playlist_tracks(user, query.playlist)
     threads = []
-    words = query.words
+    words = query.words.lower()
     for song in list_of_songs:
         if type(song) != Song:
             continue
@@ -38,11 +37,9 @@ def search_thread(query: WordQuery):
             if time.time() - song.last_check < 86400:
                 # Check now, do not create another thread
                 if song.lyrics:
-                    ratio = fuzz.partial_ratio(strip_words(song.lyrics),
-                                               strip_words(words))
-                    if strip_words(words) in strip_words(song.lyrics):
-                        ratio = 100
-                    if ratio > 80:
+                    re = regex.search(
+                        rf'({words}){{e<=3}}', song.lyrics.lower())
+                    if re is not None:
                         query.result.append(song)
                 else:
                     query.notfound.append(song)
