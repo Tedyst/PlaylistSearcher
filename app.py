@@ -40,8 +40,7 @@ def authorization():
         scope="user-library-read playlist-read-private playlist-read-collaborative")
     if current_user.is_authenticated:
         if current_user.valid():
-            return Response(current_user.token,
-                            status=200)
+            redirect(url_for('search'))
 
     url = request.url
     code = sp_oauth.parse_response_code(url)
@@ -62,12 +61,10 @@ def authorization():
         db.session.add(user)
         db.session.commit()
         login_user(user, remember=True)
-        return Response(user.token,
-                        status=200)
+        return redirect(url_for('search'))
     else:
         url = sp_oauth.get_authorize_url()
-        return Response(url,
-                        status=200)
+        return render_template('login.html', url=url)
 
 
 @login_manager.unauthorized_handler
