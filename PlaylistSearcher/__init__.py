@@ -56,11 +56,17 @@ class Song(db.Model):
         return self.name + ' - ' + self.artist
 
 
+query_queue = []
+
+
 class WordQuery():
-    def __init__(self, playlist, words):
+    def __init__(self, user, playlist, words):
+        self.user = user
         self.playlist = playlist
         self.words = words
         self.result = []
+        self.searched = 0
+        self.notfound = 0
 
 
 class User(db.Model):
@@ -69,7 +75,6 @@ class User(db.Model):
     username = db.Column(db.String(50))
     displayname = db.Column(db.String(50))
     token = db.Column(db.String(100))
-    current_query = WordQuery(None, None)
 
     def __init__(self, username, token):
         self.username = username

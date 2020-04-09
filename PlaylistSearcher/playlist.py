@@ -19,13 +19,14 @@ def playlist_tracks(user: User, uri):
     result = []
     tracks = _playlist_tracks(user, uri)
     for song in tracks:
-        exists = Song.query.filter(Song.artist == song['artists'][0]['name'])\
-            .filter(Song.name == song['track']['name']).first()
+        exists = Song.query.filter(Song.artist == song['artists'][0]['name']).filter(
+            Song.name == song['name']).first()
         if not exists:
-            exists = Song(song['track']['name'], song['artists'][0]['name'])
+            exists = Song(song['name'], song['artists'][0]['name'])
             db.session.add(exists)
         result.append(exists)
-    db.commit()
+    db.session.commit()
+    return result
 
 
 def user_playists(user: User):

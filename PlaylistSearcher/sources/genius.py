@@ -23,7 +23,7 @@ def get_lyrics(song: Song):
     result = genius.search_song(song.name, song.artist.split('&')[
         0].replace(' ', '').lower())
 
-    if song is None:
+    if result is None:
         return None
 
     # Making every change possible to make the strings match

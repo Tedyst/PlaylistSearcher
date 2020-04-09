@@ -1,4 +1,4 @@
-from PlaylistSearcher import APP, Song, db, User, login_manager, WordQuery
+from PlaylistSearcher import APP, Song, db, User, login_manager, WordQuery, query_queue
 from flask import Response, url_for, request, redirect, render_template
 from PlaylistSearcher.sources import update_lyrics
 from flask_login import current_user, login_user, login_required
@@ -49,10 +49,10 @@ def authorization():
         user = User.query.filter(User.username == username).first()
         if user is None:
             user = User(username, token)
-            db.session.add(user)
-            db.session.commit()
 
         user.token = token
+        db.session.add(user)
+        db.session.commit()
         login_user(user, remember=True)
         return Response(user.token,
                         status=200)
@@ -87,19 +87,25 @@ def search():
 @APP.route('/ajax/<playlist_id>/<words>')
 @login_required
 def ajax(playlist_id, words):
-    if current_user.current_query is None:
-        current_user.current_query = WordQuery(playlist_id, words)
+    query = None
+    for i in query_queue:
+        if i.user == current_user.id and i.words == words and i.playlist == playlist_id:
+            query = i
+            break
+    if query is None:
+        query = WordQuery(current_user.id, playlist_id, words)
+        query_queue.append(query)
         thread = Thread(target=lyricsutils.search_thread,
-                        args=[current_user.current_query])
+                        args=[query])
         thread.start()
-    else:
-        if current_user.current_query.words != words or current_user.current_query.playlist_id != playlist_id:
-            current_user.current_query = WordQuery(playlist_id, words)
-            thread = Thread(target=lyricsutils.search_thread,
-                            args=[current_user.current_query])
-            thread.start()
-    return Response(json.dumps([i.__json__() for i in current_user.current_query.result]),
-                    status=200)
+    result = {
+        "searched": query.searched,
+        "notfound": query.notfound,
+        "results": [i.__json__() for i in query.result]
+    }
+    return Response(json.dumps(result),
+                    status=200,
+                    mimetype='application/json')
 
 
 if __name__ == "__main__":

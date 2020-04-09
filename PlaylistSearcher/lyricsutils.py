@@ -1,6 +1,7 @@
-from PlaylistSearcher import APP, Song, WordQuery, db
+from PlaylistSearcher import APP, Song, WordQuery, db, User
 from PlaylistSearcher.sources import update_lyrics
 from fuzzywuzzy import fuzz
+from PlaylistSearcher.playlist import playlist_tracks
 
 
 def strip_words(words):
@@ -24,7 +25,8 @@ def search_words(list_of_songs, words):
 
 
 def search_thread(query: WordQuery):
-    list_of_songs = query.playlist
+    user = User.query.filter(User.id == query.user).first()
+    list_of_songs = playlist_tracks(user, query.playlist)
     words = query.words
     for song in list_of_songs:
         if type(song) != Song:
@@ -37,5 +39,8 @@ def search_thread(query: WordQuery):
                 ratio = 100
             if ratio > 80:
                 query.result.append(song)
+        else:
+            query.notfound += 1
+        query.searched += 1
     db.session.commit()
     return
