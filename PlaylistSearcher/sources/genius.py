@@ -6,10 +6,7 @@ from PlaylistSearcher.config import GENIUS_TOKEN
 SOURCE_NAME = "Genius"
 genius = lyricsgenius.Genius(GENIUS_TOKEN)
 
-if APP.debug:
-    genius.verbose = True
-else:
-    genius.verbose = False
+genius.verbose = False
 genius.remove_section_headers = True
 genius.skip_non_songs = True
 genius.excluded_terms = ["(Remix)", "(Live)"]

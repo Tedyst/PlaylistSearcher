@@ -4,18 +4,24 @@ from PlaylistSearcher import Song
 import time
 from PlaylistSearcher import APP, db
 
-SOURCES = [genius, youtube]
+SOURCES = [genius]
 
 
 def update_lyrics(song: Song):
     for source in SOURCES:
+        if source.SOURCE_NAME == song.source:
+            return
+        # Check only once per day
+        if song.last_check:
+            if time.time() - song.last_check < 86400:
+                return
         lyrics = source.get_lyrics(song)
         if lyrics is not None:
             song.lyrics = lyrics.replace('\n', '<br>')
             APP.logger.info("Taken lyrics for %s from %s",
                             song.title, source.SOURCE_NAME)
+            song.source = source.SOURCE_NAME
             song.last_check = int(time.time())
-            db.session.add(song)
             return
 
     song.last_check = int(time.time())
