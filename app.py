@@ -1,6 +1,10 @@
-from PlaylistSearcher import APP, Song, db
-from flask import Response
+from PlaylistSearcher import APP, Song, db, User
+from flask import Response, url_for, request
 from PlaylistSearcher.sources import update_lyrics
+from flask_login import current_user, login_user, login_required
+import spotipy
+import PlaylistSearcher.config as config
+import PlaylistSearcher.playlist as playlist
 
 
 @APP.route('/lyrics/<artist>/<name>')
@@ -13,6 +17,56 @@ def get_lyrics(artist, name):
 
     db.session.commit()
     return Response(song.lyrics,
+                    status=200)
+
+
+@APP.route('/authorization')
+def authorization():
+    sp_oauth = spotipy.oauth2.SpotifyOAuth(
+        config.SPOTIFY_CLIENT_ID,
+        config.SPOTIFY_CLIENT_SECRET,
+        url_for('authorization', _external=True),
+        scope="user-library-read playlist-read-private playlist-read-collaborative")
+    if current_user.is_authenticated:
+        if current_user.valid():
+            return Response(current_user.token,
+                            status=200)
+
+    url = request.url
+    code = sp_oauth.parse_response_code(url)
+    if code:
+        APP.logger.info(
+            "Found Spotify auth code in Request URL!")
+        APP.logger.debug("Spotify auth code is %s", code)
+        token_info = sp_oauth.get_access_token(code, check_cache=False)
+        token = token_info['access_token']
+        me = spotipy.Spotify(token).me()
+        username = me['id']
+
+        user = User.query.filter(User.username == username).first()
+        if user is None:
+            user = User(username, token)
+            db.session.add(user)
+            db.session.commit()
+
+        user.token = token
+        login_user(user, remember=True)
+        return Response(user.token,
+                        status=200)
+    else:
+        url = sp_oauth.get_authorize_url()
+        return Response(url,
+                        status=200)
+
+
+@APP.route('/playlists')
+@login_required
+def playlists():
+    string = ""
+    playlists = playlist.user_playists(current_user)
+    for i in playlists:
+        string += i.name + ' - ' + i.id + '<br>'
+    return Response(string,
                     status=200)
 
 
