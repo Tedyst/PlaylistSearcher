@@ -9,16 +9,72 @@
     <div class="content">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header card-header-icon" data-background-color="red">
+                            <i class="material-icons">assignment</i>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Selecteaza un playlist in care sa cauti</h4>
+                                <div class="row">
+                                        <div class="text-center">
+                                            <select class="selectpicker" data-style="btn btn-primary btn-round" title="Single Select" data-size="7" id="playlistselector">
+                                                <option disabled selected>Choose playlist</option>
+                                                {% for playlist in current_user.playlists() %}
+                                                <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                </div>
+                                <div class="row">
+                                        <div class="col-md-6 col-md-offset-3 text-center">
+                                                <div class="form-group label-floating">
+                                                    <label class="control-label">Words that you want to search</label>
+                                                    <input type="text" class="form-control" id="words" name="words">
+                                                </div>
+                                        </div>
+                                        <br>
+                                        
+                                </div>
+                                <div class="row">
+                                    <div class="text-center">
+                                            <button class="btn btn-primary btn-round" onclick="startRefresh()">
+                                                Search
+                                                <div class="ripple-container"></div>
+                                            </button>
+                                        </div>
+                                </div>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-header card-header-icon" data-background-color="purple">
                             <i class="material-icons">assignment</i>
                         </div>
                         <div class="card-content">
-                            <h4 class="card-title">Sursele trimise de utilizatorul </h4>
-                            <div class="text-center" id="loading-heatmap">
-                                {% include "loading.html" %}
+                            <h4 class="card-title" id="lyrics-title">Lyrics</h4>
+                            <p id="lyrics-display" class="text-center">Here will be shown the lyrics.</p>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card" id="result" style="min-height: 95vh;">
+                        <div class="card-header card-header-icon" data-background-color="purple">
+                            <i class="material-icons">assignment</i>
+                        </div>
+                        <div class="card-content d-flex align-items-stretch">
+                            <h4 class="card-title">Rezultatele cautarii pentru "dream" in playlistul "Dance floor"</h4>
+
+                            <div class="col-md-2" id="result-card" style="display:none;">
+                                <div class="card">
+                                    <div class="card-content" href>
+                                        <h6 class="card-title text-center"></h4>
+                                        <img src="">
+                                    </div>
+                                </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -29,5 +85,62 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+    base = document.getElementById("result-card");
+    remember = {};
+    function afisare(data) {
+        for(song in data.results){
+            element = document.getElementById( data.results[song].uri );
+            console.log(element);
+            if (typeof(element) != 'undefined' && element != null)
+                continue;
+            var cln = base.cloneNode(true);
+            cln.childNodes[1].childNodes[1].childNodes[1].innerHTML=data.results[song].name;
+            cln.childNodes[1].childNodes[1].childNodes[3].src=data.results[song].image_url;
+            cln.id = data.results[song].uri;
+            cln.setAttribute('onclick','apasare("' + data.results[song].uri + '");' );
+            cln.style = "";
+            cln.classList.add("song-result-card");
+            document.getElementById("result").appendChild(cln);
+        }
+        remember = data.results;
+        $('#lyrics-title').html(data.results[0].artist + ' - ' + data.results[0].name)
+        $('#lyrics-display').html(data.results[0].lyrics)
+    }
+    function apasare(uri){
+        for(song in remember){
+            if(remember[song].uri == uri){
+                $('#lyrics-title').html(remember[song].artist + ' - ' + remember[song].name)
+                $('#lyrics-display').html(remember[song].lyrics)
+                break;
+            }
+        }
+    }
+    function startRefresh(){
+        $('.song-result-card').remove();
+        doRefresh();
+    }
+    var doRefresh = function() {
+        playlist = $("#playlistselector").children("option:selected")[0].value;
+        if(playlist == ""){
+            return;
+        }
+        words = $("#words")[0].value
+        $.ajax({
+            url: '/ajax/' + playlist + '/' + words,
+            type: 'get',
+            success: function(data, status) {
+                if(data.finished == false) {
+                    setTimeout(doRefresh, 100);
+                }
+                afisare(data);
+            }, error: function(xhr, desc, err) {
+                console.log("Details: " + desc + "\nError:" + err);
+            }, complete: function(){    
+                console.log("Finished");
+            }
+        })
+    }
 
+</script>
 {% endblock %}

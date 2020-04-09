@@ -60,7 +60,7 @@ def authorization():
         user.token = token
         db.session.add(user)
         db.session.commit()
-        login_user(user, remember=True)
+        login_user(user)
         return redirect(url_for('search'))
     else:
         url = sp_oauth.get_authorize_url()
@@ -86,6 +86,14 @@ def playlists():
 @APP.route('/search')
 @login_required
 def search():
+    if not current_user.valid():
+        sp_oauth = spotipy.oauth2.SpotifyOAuth(
+            config.SPOTIFY_CLIENT_ID,
+            config.SPOTIFY_CLIENT_SECRET,
+            url_for('authorization', _external=True),
+            scope="user-library-read playlist-read-private playlist-read-collaborative")
+        url = sp_oauth.get_authorize_url()
+        return render_template('login.html', auth_url=url)
     return render_template('search.html')
 
 

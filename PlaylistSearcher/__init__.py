@@ -56,6 +56,7 @@ class Song(db.Model):
         data["name"] = self.name
         data["artist"] = self.artist
         data["lyrics"] = self.lyrics
+        data["uri"] = self.uri
         data["image_url"] = self.image
         data["preview_url"] = self.preview
         return data
