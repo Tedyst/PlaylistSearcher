@@ -44,9 +44,23 @@ class Song(db.Model):
         self.name = name
         self.artist = artist
 
+    def __json__(self):
+        data = {}
+        data["name"] = self.name
+        data["artist"] = self.artist
+        data["lyrics"] = self.lyrics
+        return data
+
     @property
     def title(self):
         return self.name + ' - ' + self.artist
+
+
+class WordQuery():
+    def __init__(self, playlist, words):
+        self.playlist = playlist
+        self.words = words
+        self.result = []
 
 
 class User(db.Model):
@@ -55,6 +69,7 @@ class User(db.Model):
     username = db.Column(db.String(50))
     displayname = db.Column(db.String(50))
     token = db.Column(db.String(100))
+    current_query = WordQuery(None, None)
 
     def __init__(self, username, token):
         self.username = username
@@ -64,7 +79,10 @@ class User(db.Model):
         if self.token is None:
             return False
         sp = spotipy.Spotify(self.token)
-        me = sp.me()
+        try:
+            me = sp.me()
+        except spotipy.client.SpotifyException:
+            return False
         if me is None:
             return False
         if me['id'] != self.username:

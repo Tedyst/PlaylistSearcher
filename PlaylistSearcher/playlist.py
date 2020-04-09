@@ -1,6 +1,5 @@
 from PlaylistSearcher import Song, User, db, Playlist
 import spotipy
-from PlaylistSearcher.sources import update_lyrics
 
 
 def _playlist_tracks(user: User, uri):

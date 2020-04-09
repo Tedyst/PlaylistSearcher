@@ -1,10 +1,13 @@
-from PlaylistSearcher import APP, Song, db, User
-from flask import Response, url_for, request
+from PlaylistSearcher import APP, Song, db, User, login_manager, WordQuery
+from flask import Response, url_for, request, redirect, render_template
 from PlaylistSearcher.sources import update_lyrics
 from flask_login import current_user, login_user, login_required
 import spotipy
 import PlaylistSearcher.config as config
 import PlaylistSearcher.playlist as playlist
+from threading import Thread
+import PlaylistSearcher.lyricsutils as lyricsutils
+import json
 
 
 @APP.route('/lyrics/<artist>/<name>')
@@ -59,6 +62,11 @@ def authorization():
                         status=200)
 
 
+@login_manager.unauthorized_handler
+def unauthorized():
+    return redirect(url_for('authorization'))
+
+
 @APP.route('/playlists')
 @login_required
 def playlists():
@@ -67,6 +75,30 @@ def playlists():
     for i in playlists:
         string += i.name + ' - ' + i.id + '<br>'
     return Response(string,
+                    status=200)
+
+
+@APP.route('/search')
+@login_required
+def search():
+    return render_template('search.html')
+
+
+@APP.route('/ajax/<playlist_id>/<words>')
+@login_required
+def ajax(playlist_id, words):
+    if current_user.current_query is None:
+        current_user.current_query = WordQuery(playlist_id, words)
+        thread = Thread(target=lyricsutils.search_thread,
+                        args=[current_user.current_query])
+        thread.start()
+    else:
+        if current_user.current_query.words != words or current_user.current_query.playlist_id != playlist_id:
+            current_user.current_query = WordQuery(playlist_id, words)
+            thread = Thread(target=lyricsutils.search_thread,
+                            args=[current_user.current_query])
+            thread.start()
+    return Response(json.dumps([i.__json__() for i in current_user.current_query.result]),
                     status=200)
 
 
