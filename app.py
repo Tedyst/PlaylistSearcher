@@ -64,7 +64,7 @@ def authorization():
         return redirect(url_for('search'))
     else:
         url = sp_oauth.get_authorize_url()
-        return render_template('login.html', url=url)
+        return render_template('login.html', auth_url=url)
 
 
 @login_manager.unauthorized_handler

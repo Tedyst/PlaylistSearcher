@@ -9,20 +9,21 @@
                 <div class="container">
                     <div class="row">
                         <div class="col-md-4 col-sm-6 col-md-offset-4 col-sm-offset-3">
-                            <form method="post" action="{{ url_for('login') }}">
-                                <div class="card card-login card-hidden">
-                                    <div class="card-header text-center" data-background-color="rose">
-                                        <h4 class="card-title">Login</h4>
-                                    </div>
-                                    <div class="card-content">
-                                        
-                                    </div>
-                                    <div class="footer text-center">
-                                        <a href="{{ url }}" class="btn btn-rose btn-simple btn-wd btn-lg">Logheaza-te cu spotify</a>
-                                        <button type="submit" class="btn btn-rose btn-simple btn-wd btn-lg">Let's go</button>
+                            <div class="card card-login card-hidden">
+                                <div class="card-header text-center" data-background-color="rose">
+                                    <h4 class="card-title">Authorize your Spotify account</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="text-center">
+                                        To allow us to see your playlists, we need your permission.
+                                        <br>
+                                        Click on the button below to authorize us to see your playlists. 
                                     </div>
                                 </div>
-                            </form>
+                                <div class="footer text-center">
+                                    <a href="{{ auth_url }}" class="btn btn-rose btn-simple btn-wd btn-lg">Logheaza-te cu spotify</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
