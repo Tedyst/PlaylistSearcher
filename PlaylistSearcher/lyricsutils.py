@@ -17,10 +17,9 @@ def search_words(list_of_songs, words):
             continue
         update_lyrics(song)
         if song.lyrics:
-            re = regex.search('(amazing){e<=1}', 'amaging')
-            if strip_words(words) in strip_words(song.lyrics):
-                ratio = 100
-            if ratio > 80:
+            re = regex.search(
+                rf'({words}){{e<=3}}', song.lyrics.lower())
+            if re is not None:
                 result.append(song)
     return song
 
@@ -64,11 +63,9 @@ def search_thread(query: WordQuery):
         originalsong.last_check = song.last_check
         thread.join()
         if song.lyrics:
-            ratio = fuzz.partial_ratio(strip_words(song.lyrics),
-                                       strip_words(words))
-            if strip_words(words) in strip_words(song.lyrics):
-                ratio = 100
-            if ratio > 80:
+            re = regex.search(
+                rf'({words}){{e<=3}}', song.lyrics.lower())
+            if re is not None:
                 query.result.append(song)
         else:
             query.notfound.append(song)
