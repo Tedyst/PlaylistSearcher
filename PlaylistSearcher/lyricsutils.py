@@ -45,7 +45,7 @@ def search_thread(query: WordQuery):
                     if ratio > 80:
                         query.result.append(song)
                 else:
-                    query.notfound += 1
+                    query.notfound.append(song)
                 query.searched += 1
                 continue
 
@@ -74,7 +74,7 @@ def search_thread(query: WordQuery):
             if ratio > 80:
                 query.result.append(song)
         else:
-            query.notfound += 1
+            query.notfound.append(song)
         query.searched += 1
     db.session.commit()
     return

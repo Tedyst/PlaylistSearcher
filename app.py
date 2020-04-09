@@ -8,6 +8,7 @@ import PlaylistSearcher.playlist as playlist
 from threading import Thread
 import PlaylistSearcher.lyricsutils as lyricsutils
 import json
+from PlaylistSearcher.playlist import playlist_tracks
 
 
 @APP.route('/lyrics/<artist>/<name>')
@@ -99,13 +100,17 @@ def ajax(playlist_id, words):
                         args=[query])
         thread.start()
     result = {
+        "finished": True,
         "searched": query.searched,
-        "notfound": query.notfound,
+        "notfound": [i.__json__() for i in query.notfound],
         "results": [i.__json__() for i in query.result]
     }
-    return Response(json.dumps(result),
-                    status=200,
-                    mimetype='application/json')
+    if query.searched != len(playlist_tracks(current_user, query.playlist)):
+        result["finished"] = False
+    return render_template('dump.html', data=json.dumps(result))
+    # return Response(json.dumps(result),
+    #                 status=200,
+    #                 mimetype='application/json')
 
 
 if __name__ == "__main__":

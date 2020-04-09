@@ -27,7 +27,9 @@ if "pytest" in sys.modules:
 else:
     APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../data.db'
 
-db = SQLAlchemy(APP)
+db = SQLAlchemy(APP, session_options={
+    'expire_on_commit': False
+})
 login_manager = LoginManager(APP)
 
 
@@ -66,7 +68,7 @@ class WordQuery():
         self.words = words
         self.result = []
         self.searched = 0
-        self.notfound = 0
+        self.notfound = []
 
 
 class User(db.Model):
