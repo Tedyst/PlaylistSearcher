@@ -18,11 +18,17 @@ def _playlist_tracks(user: User, uri):
 def playlist_tracks(user: User, uri):
     result = []
     tracks = _playlist_tracks(user, uri)
-    for song in tracks:
-        exists = Song.query.filter(Song.artist == song['artists'][0]['name']).filter(
-            Song.name == song['name']).first()
+    for spotify_info in tracks:
+        exists = Song.query.filter(Song.artist == spotify_info['artists'][0]['name']).filter(
+            Song.name == spotify_info['name']).first()
         if not exists:
-            exists = Song(song['name'], song['artists'][0]['name'])
+            exists = Song(
+                spotify_info['name'],
+                spotify_info['artists'][0]['name'],
+                spotify_info['uri'],
+                spotify_info['album']['images'][0]['url'],
+                spotify_info['preview_url']
+            )
             db.session.add(exists)
         result.append(exists)
     db.session.commit()

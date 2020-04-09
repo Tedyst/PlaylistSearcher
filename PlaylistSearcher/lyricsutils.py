@@ -1,4 +1,4 @@
-from PlaylistSearcher import APP, Song, WordQuery, db, User
+from PlaylistSearcher import Song, WordQuery, db, User
 from PlaylistSearcher.sources import update_lyrics
 from PlaylistSearcher.playlist import playlist_tracks
 from threading import Thread
@@ -53,7 +53,9 @@ def search_thread(query: WordQuery):
                 query.searched += 1
                 continue
 
-        copysong = Song(song.name, song.artist)
+        copysong = Song(
+            song.name, song.artist, song.uri, song.image, song.preview
+        )
         copysong.lyrics = song.lyrics
         copysong.source = song.source
         copysong.last_check = song.last_check

@@ -11,12 +11,19 @@ import json
 from PlaylistSearcher.playlist import playlist_tracks
 
 
-@APP.route('/lyrics/<artist>/<name>')
-def get_lyrics(artist, name):
-    song = Song.query.filter(Song.artist == artist).filter(
-        Song.name == name).first()
+@APP.route('/lyrics/<uri>')
+def get_lyrics(uri):
+    song_info = spotipy.Spotify().track(uri)
+    song = Song.query.filter(Song.artist == song_info['artists'][0]['name']
+                             ).filter(Song.name == song_info['name']).first()
     if song is None:
-        song = Song(name, artist)
+        song = Song(
+            song_info['name'],
+            song_info['artists'][0]['name'],
+            song_info['uri'],
+            song_info['album']['images'][0]['url'],
+            song_info['preview_url']
+        )
         update_lyrics(song)
 
     db.session.commit()
