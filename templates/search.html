@@ -48,14 +48,13 @@
                     </div>
 
                     <div class="card" style="display: none;" id="lyrics-card">
-                        <div class="card-header card-header-icon" data-background-color="purple">
-                            <i class="material-icons">assignment</i>
+                        <div class="card-header card-header-icon" data-background-color="purple" id="lyrics-player" href>
+                            <i class="material-icons" id="player-icon">assignment</i>
                         </div>
                         <div class="card-content">
                             <h4 class="card-title" id="lyrics-title">Lyrics</h4>
                             <p id="lyrics-display" class="text-center">Here will be shown the lyrics.</p>
                         </div>
-
                     </div>
                 </div>
                 <div class="col-md-8">
@@ -88,6 +87,7 @@
 <script>
     base = document.getElementById("result-card");
     remember = {};
+    var audio = null;
     function afisare(data) {
         cardcentralnimic = document.getElementById( "card-central-nimic" );
         console.log(cardcentralnimic);
@@ -115,17 +115,55 @@
             document.getElementById("result").appendChild(cln);
         }
         remember = data.results;
-        $('#lyrics-title').html(data.results[0].artist + ' - ' + data.results[0].name)
-        $('#lyrics-display').html(data.results[0].lyrics)
+        if(data.results[0].preview_url == null){
+            $('#lyrics-player').attr('onclick','');
+            $('#player-icon').html("stop");
+        } else {
+            $('#lyrics-player').attr('onclick','play("' + data.results[0].uri + '");');
+            $('#player-icon').html("play_arrow");
+        }
+        $('#lyrics-title').html(data.results[0].artist + ' - ' + data.results[0].name);
+        $('#lyrics-display').html(data.results[0].lyrics);
     }
     function apasare(uri){
+        if(audio != null)
+            audio.pause();
+        audio = null;
         for(song in remember){
             if(remember[song].uri == uri){
+                if(remember[song].preview_url == null){
+                    $('#lyrics-player').attr('onclick','');
+                    $('#player-icon').html("stop");
+                } else {
+                    $('#lyrics-player').attr('onclick','play("' + remember[song].uri + '");');
+                    $('#player-icon').html("play_arrow");
+                }
                 $('#lyrics-title').html(remember[song].artist + ' - ' + remember[song].name)
                 $('#lyrics-display').html(remember[song].lyrics)
                 break;
             }
         }
+    }
+    function play(uri){
+        
+        console.log("play", uri);
+        $('#lyrics-player').attr('onclick','pause("' + remember[song].uri + '");');
+        $('#player-icon').html("pause");
+        for(song in remember){
+            if(remember[song].uri == uri){
+                audio = new Audio(remember[song].preview_url);
+                console.log(remember[song]);
+                break;
+            }
+        }
+
+        audio.play();
+    }
+    function pause(uri){
+        console.log("pause", uri);
+        $('#lyrics-player').attr('onclick','play("' + remember[song].uri + '");');
+        $('#player-icon').html("play_arrow");
+        audio.pause();
     }
     function startRefresh(){
         $('.song-result-card').remove();
@@ -136,7 +174,10 @@
         if(playlist == ""){
             return;
         }
-        words = $("#words")[0].value
+        words = $("#words")[0].value;
+        refreshInternal(playlist, words);
+    }
+    var refreshInternal = function(playlist, words) {
         $.ajax({
             url: '/ajax/' + playlist + '/' + words,
             type: 'get',
@@ -152,6 +193,8 @@
             }
         })
     }
-
 </script>
+<Script>
+    refreshInternal("4IOl8MrXPWvHVxo2NpSxwP", "dream");
+</Script>
 {% endblock %}
