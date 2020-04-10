@@ -58,14 +58,14 @@
                     </div>
                 </div>
                 <div class="col-md-8">
-                    <div class="card" id="result" style="display: none;">
-                        <div class="card-header card-header-icon" data-background-color="purple">
-                            <i class="material-icons">assignment</i>
+                    <div class="card" style="display: none;" id="result-main">
+                        <div class="card-header card-header-icon" data-background-color="purple" id="toggle-show-button">
+                            <i class="material-icons" id="toggle-show-icon">assignment</i>
                         </div>
-                        <div class="card-content d-flex align-items-stretch">
-                            <h4 class="card-title">Rezultatele cautarii pentru "dream" in playlistul "Dance floor"</h4>
+                        <div class="card-content d-flex align-items-stretch" id="result-card" style="display:none;">
+                            <h4 class="card-title loading-text"></h4>
 
-                            <div class="col-md-2" id="result-card" style="display:none;">
+                            <div class="col-md-2" id="result-card-template" style="display:none;">
                                 <div class="card" style="min-height: 250px;">
                                     <div class="card-content align-self-center" href>
                                         <img src="">
@@ -73,6 +73,19 @@
                                     </div>
                                 </div>
                             </div>
+
+                        </div>
+
+                        <div class="card-content d-flex align-items-stretch" id="result-list" style="display:none;">
+
+                            <h4 class="card-title loading-text"></h4>
+                                <div class="table-responsive">
+                                        <table class="table">
+                                            <tbody id="result-list-table">
+                                                
+                                            </tbody>
+                                        </table>
+                                </div>
 
                         </div>
                     </div>
@@ -85,36 +98,21 @@
 
 {% block scripts %}
 <script>
-    base = document.getElementById("result-card");
+    cardbase = document.getElementById("result-card-template");
     remember = {};
     var audio = null;
     function afisare(data) {
         cardcentralnimic = document.getElementById( "card-central-nimic" );
-        console.log(cardcentralnimic);
         if (typeof(cardcentralnimic) != 'undefined' && cardcentralnimic != null){
-            console.log(cardcentralnimic);
             cardcentralnimic.classList.remove("col-md-offset-4");
             cardcentralnimic.id = "";
-            result = document.getElementById( "result" );
-            result.style = "min-height: 95vh;" ;
+            resultcards = document.getElementById( "result-main" );
+            resultcards.style = "min-height: 95vh;" ;
             lyricscard = document.getElementById( "lyrics-card" );
             lyricscard.style = "";
         }
-
-        for(song in data.results){
-            element = document.getElementById( data.results[song].uri );
-            if (typeof(element) != 'undefined' && element != null)
-                continue;
-            var cln = base.cloneNode(true);
-            cln.childNodes[1].childNodes[1].childNodes[3].innerHTML=data.results[song].name + "<br>" + data.results[song].artist;
-            cln.childNodes[1].childNodes[1].childNodes[1].src=data.results[song].image_url;
-            cln.id = data.results[song].uri;
-            cln.setAttribute('onclick','apasare("' + data.results[song].uri + '");' );
-            cln.style = "";
-            cln.classList.add("song-result-card");
-            document.getElementById("result").appendChild(cln);
-        }
         remember = data.results;
+        toggledivs("cards");
         if(data.results[0].preview_url == null){
             $('#lyrics-player').attr('onclick','');
             $('#player-icon').html("stop");
@@ -145,14 +143,11 @@
         }
     }
     function play(uri){
-        
-        console.log("play", uri);
         $('#lyrics-player').attr('onclick','pause("' + remember[song].uri + '");');
         $('#player-icon').html("pause");
         for(song in remember){
             if(remember[song].uri == uri){
                 audio = new Audio(remember[song].preview_url);
-                console.log(remember[song]);
                 break;
             }
         }
@@ -160,13 +155,64 @@
         audio.play();
     }
     function pause(uri){
-        console.log("pause", uri);
         $('#lyrics-player').attr('onclick','play("' + remember[song].uri + '");');
         $('#player-icon').html("play_arrow");
         audio.pause();
     }
-    function startRefresh(){
+    function toggledivs(type) {
+        console.log(type);
         $('.song-result-card').remove();
+        $('.song-result-list').remove();
+        if(type == "cards"){
+            $('#toggle-show-icon').html("dashboard");
+            $('#toggle-show-button').attr('onclick','toggledivs("list");');
+            $('#result-card').css("display", "");
+            $('#result-list').css("display", "none");
+            for(song in remember){
+                element = document.getElementById( remember[song].uri );
+                if (typeof(element) != 'undefined' && element != null)
+                    continue;
+                var cln = cardbase.cloneNode(true);
+                cln.childNodes[1].childNodes[1].childNodes[3].innerHTML=remember[song].name + "<br>" + remember[song].artist;
+                cln.childNodes[1].childNodes[1].childNodes[1].src=remember[song].image_url;
+                cln.id = remember[song].uri;
+                cln.setAttribute('onclick','apasare("' + remember[song].uri + '");' );
+                cln.style = "";
+                cln.classList.add("song-result-card");
+                document.getElementById("result-card").appendChild(cln);
+            }
+        } else {
+            $('#toggle-show-icon').html("dns");
+            $('#result-card').css("display", "none");
+            $('#toggle-show-button').attr('onclick','toggledivs("cards");');
+            $('#result-list').css("display", "");
+            var table = document.getElementById("result-list-table");
+            for(song in remember){
+                element = document.getElementById( remember[song].uri );
+                if (typeof(element) != 'undefined' && element != null)
+                    continue;
+                var row = table.insertRow(0);
+                var cell0 = row.insertCell(0);
+                var cell1 = row.insertCell(1);
+                var cell2 = row.insertCell(1);
+                var image = new Image(50,50);
+                image.style = "width:50px;height:50px;";
+                image.src = remember[song].image_url;
+                cell0.appendChild(image);
+                cell1.innerHTML = remember[song].name;
+                cell2.innerHTML = remember[song].artist;
+                row.id = remember[song].uri;
+                row.setAttribute('onclick','apasare("' + remember[song].uri + '");' );
+                row.classList.add("song-result-list");
+                document.getElementById("result-list-table").appendChild(row);
+            }
+        }
+    }
+    function startRefresh(){
+        if(audio != null)
+            audio.pause();
+        $('.song-result-card').remove();
+        $('.song-result-list').remove();
         doRefresh();
     }
     var doRefresh = function() {
@@ -183,7 +229,10 @@
             type: 'get',
             success: function(data, status) {
                 if(data.finished == false) {
+                    $('.loading-text').html("Loading... searched "+ data.searched +" out of "+ data.total);
                     setTimeout(doRefresh, 100);
+                } else {
+                    $('.loading-text').html("Showing the songs that match the words '" + words + "'");
                 }
                 afisare(data);
             }, error: function(xhr, desc, err) {
