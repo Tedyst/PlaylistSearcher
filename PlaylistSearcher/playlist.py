@@ -4,7 +4,8 @@ import spotipy
 
 def _playlist_tracks(user: User, uri):
     sp = spotipy.Spotify(user.token)
-    results = sp.user_playlist_tracks(user.username, playlist_id=uri)
+    results = sp.user_playlist_tracks(
+        user.username, playlist_id=uri, market="RO")
     tracks = []
     for track in results['items']:
         tracks.append(track['track'])
