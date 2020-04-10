@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "venv/bin/python3.7",
+    "python.pythonPath": "/media/hddext4/Git/PlaylistSearcher/venv/bin/python3.7",
     "python.testing.pytestArgs": [
         "tests"
     ],
