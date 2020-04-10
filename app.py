@@ -109,18 +109,13 @@ def ajax(playlist_id, words):
             query = i
             break
     if query is None:
-        startthread = True
-        for i in query_queue:
-            if i.playlist == playlist_id:
-                startthread = False
-                break
-        if startthread:
-            query = WordQuery(current_user.id, playlist_id, words,
-                              len(current_user.playlist_tracks(playlist_id)))
-            query_queue.append(query)
-            thread = Thread(target=lyricsutils.search_thread,
-                            args=[query])
-            thread.start()
+        query = WordQuery(current_user.id, playlist_id, words,
+                          len(current_user.playlist_tracks(playlist_id)))
+        thread = Thread(target=lyricsutils.search_thread,
+                        args=[query])
+        thread.start()
+        query_queue.append(query)
+
     result = {
         "finished": True,
         "total": query.total,
