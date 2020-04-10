@@ -4,11 +4,9 @@ from PlaylistSearcher.sources import update_lyrics
 from flask_login import current_user, login_user, login_required
 import spotipy
 import PlaylistSearcher.config as config
-import PlaylistSearcher.playlist as playlist
 from threading import Thread
 import PlaylistSearcher.lyricsutils as lyricsutils
 import json
-from PlaylistSearcher.playlist import playlist_tracks
 
 
 @APP.route('/lyrics/<uri>')
@@ -112,7 +110,7 @@ def ajax(playlist_id, words):
             break
     if query is None:
         query = WordQuery(current_user.id, playlist_id, words,
-                          len(playlist_tracks(current_user, playlist_id)))
+                          len(current_user.playlist_tracks(playlist_id)))
         query_queue.append(query)
         thread = Thread(target=lyricsutils.search_thread,
                         args=[query])

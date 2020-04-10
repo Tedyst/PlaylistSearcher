@@ -99,6 +99,7 @@
 {% block scripts %}
 <script>
     cardbase = document.getElementById("result-card-template");
+    viewmode = "list";
     remember = {};
     var audio = null;
     function afisare(data) {
@@ -112,7 +113,7 @@
             lyricscard.style = "";
         }
         remember = data.results;
-        toggledivs("list");
+        toggledivs(viewmode);
         if(data.results[0].preview_url == null){
             $('#lyrics-player').attr('onclick','');
             $('#player-icon').html("stop");
@@ -167,6 +168,7 @@
         $('.song-result-card').remove();
         $('.song-result-list').remove();
         if(type == "cards"){
+            viewmode = "cards";
             $('#toggle-show-icon').html("dashboard");
             $('#toggle-show-button').attr('onclick','toggledivs("list");');
             $('#result-card').css("display", "");
@@ -185,6 +187,7 @@
                 document.getElementById("result-card").appendChild(cln);
             }
         } else {
+            viewmode = "list";
             $('#toggle-show-icon').html("dns");
             $('#result-card').css("display", "none");
             $('#toggle-show-button').attr('onclick','toggledivs("cards");');

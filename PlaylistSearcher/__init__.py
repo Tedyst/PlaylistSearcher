@@ -112,8 +112,16 @@ class User(db.Model):
         return self.username
 
     def playlists(self):
-        from PlaylistSearcher.playlist import user_playists
-        return user_playists(self)
+        sp = spotipy.Spotify(self.token)
+        playlists = sp.user_playlists(self.username)
+        result = []
+        for playlist in playlists['items']:
+            result.append(Playlist(playlist['id'], playlist['name']))
+        while playlists['next']:
+            playlists = sp.next(playlists)
+            for playlist in playlists['items']:
+                result.append(Playlist(playlist['id'], playlist['name']))
+        return result
 
     def is_authenticated(self):
         return True
@@ -126,6 +134,38 @@ class User(db.Model):
 
     def get_id(self):
         return self.id
+
+    def _playlist_tracks(self, uri):
+        sp = spotipy.Spotify(self.token)
+        results = sp.user_playlist_tracks(
+            self.username, playlist_id=uri, market="RO")
+        tracks = []
+        for track in results['items']:
+            tracks.append(track['track'])
+        while results['next']:
+            results = sp.next(results)
+            for track in results['items']:
+                tracks.append(track['track'])
+        return tracks
+
+    def playlist_tracks(self, uri):
+        result = []
+        tracks = self._playlist_tracks(uri)
+        for spotify_info in tracks:
+            exists = Song.query.filter(Song.artist == spotify_info['artists'][0]['name']).filter(
+                Song.name == spotify_info['name']).first()
+            if not exists:
+                exists = Song(
+                    spotify_info['name'],
+                    spotify_info['artists'][0]['name'],
+                    spotify_info['uri'],
+                    spotify_info['album']['images'][0]['url'],
+                    spotify_info['preview_url']
+                )
+                db.session.add(exists)
+            result.append(exists)
+        db.session.commit()
+        return result
 
 
 class Playlist():
