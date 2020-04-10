@@ -13,12 +13,12 @@ genius.excluded_terms = ["(Remix)", "(Live)"]
 
 
 def strip_artist(artist):
-    return artist.split('&')[0].split(',')[0].replace(' ', '').lower()
+    return artist.split('&')[0].split(',')[0].lower()
 
 
 def get_lyrics(song: Song):
     result = genius.search_song(song.name, song.artist.split('&')[
-        0].replace(' ', '').lower())
+        0].lower())
 
     if result is None:
         return None
