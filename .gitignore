@@ -1,5 +1,5 @@
-.cache*
-cache/
 *.pyc
-config.py
-notfoundsongs.txt
+venv/
+.env
+data.db
+ceva.txt

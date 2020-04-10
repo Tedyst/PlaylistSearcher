@@ -1,0 +1,55 @@
+﻿{% extends 'base.html' %}
+
+{% block title %} Login {% endblock %}
+
+{% block content %}
+    <div class="wrapper wrapper-full-page">
+        <div class="full-page login-page" filter-color="black" data-image="{{ url_for('static', filename='img/login.jpg') }}">
+            <div class="content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 col-md-offset-4 col-sm-offset-3">
+                            <div class="card card-login card-hidden">
+                                <div class="card-header text-center" data-background-color="rose">
+                                    <h4 class="card-title">Authorize your Spotify account</h4>
+                                </div>
+                                <div class="card-content">
+                                    <div class="text-center">
+                                        To allow us to see your playlists, we need your permission.
+                                        <br>
+                                        Click on the button below to authorize us to see your playlists. 
+                                    </div>
+                                </div>
+                                <div class="footer text-center">
+                                    <a href="{{ auth_url }}" class="btn btn-rose btn-simple btn-wd btn-lg">Login using Spotify</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function checkFullPageBackgroundImage() {
+            $page = $('.full-page');
+            image_src = $page.data('image');
+
+            if(image_src !== undefined){
+                image_container = '<div class="full-page-background" style="background-image: url(' + image_src + ') "/>'
+                $page.append(image_container);
+            }
+        }
+    
+    $().ready(function() {
+        checkFullPageBackgroundImage();
+        setTimeout(function() {
+            // after 1000 ms we add the class animated to the login/register card
+            $('.card').removeClass('card-hidden');
+        }, 700)
+    });
+</script>
+{% endblock %}
