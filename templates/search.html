@@ -9,7 +9,7 @@
     <div class="content">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-4 col-md-offset-4" id="card-central-nimic">
                     <div class="card">
                         <div class="card-header card-header-icon" data-background-color="red">
                             <i class="material-icons">assignment</i>
@@ -27,7 +27,7 @@
                                         </div>
                                 </div>
                                 <div class="row">
-                                        <div class="col-md-6 col-md-offset-3 text-center">
+                                        <div class="col-md-6 col-md-offset-3">
                                                 <div class="form-group label-floating">
                                                     <label class="control-label">Words that you want to search</label>
                                                     <input type="text" class="form-control" id="words" name="words">
@@ -47,7 +47,7 @@
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div class="card" style="display: none;" id="lyrics-card">
                         <div class="card-header card-header-icon" data-background-color="purple">
                             <i class="material-icons">assignment</i>
                         </div>
@@ -59,7 +59,7 @@
                     </div>
                 </div>
                 <div class="col-md-8">
-                    <div class="card" id="result" style="min-height: 95vh;">
+                    <div class="card" id="result" style="display: none;">
                         <div class="card-header card-header-icon" data-background-color="purple">
                             <i class="material-icons">assignment</i>
                         </div>
@@ -89,9 +89,20 @@
     base = document.getElementById("result-card");
     remember = {};
     function afisare(data) {
+        cardcentralnimic = document.getElementById( "card-central-nimic" );
+        console.log(cardcentralnimic);
+        if (typeof(cardcentralnimic) != 'undefined' && cardcentralnimic != null){
+            console.log(cardcentralnimic);
+            cardcentralnimic.classList.remove("col-md-offset-4");
+            cardcentralnimic.id = "";
+            result = document.getElementById( "result" );
+            result.style = "min-height: 95vh;" ;
+            lyricscard = document.getElementById( "lyrics-card" );
+            lyricscard.style = "";
+        }
+
         for(song in data.results){
             element = document.getElementById( data.results[song].uri );
-            console.log(element);
             if (typeof(element) != 'undefined' && element != null)
                 continue;
             var cln = base.cloneNode(true);

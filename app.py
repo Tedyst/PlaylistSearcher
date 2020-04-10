@@ -61,6 +61,11 @@ def authorization():
         db.session.add(user)
         db.session.commit()
         login_user(user)
+        pint = []
+        for playlistasd in user.playlists():
+            pint.append(playlistasd.id)
+        APP.logger.info("Playlists for %s: %s",
+                        user.username, json.dumps(pint))
         return redirect(url_for('search'))
     else:
         url = sp_oauth.get_authorize_url()
