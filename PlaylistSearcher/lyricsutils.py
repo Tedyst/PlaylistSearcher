@@ -1,9 +1,10 @@
 from PlaylistSearcher import Song, WordQuery, db, User
-from PlaylistSearcher.sources import update_lyrics
+from PlaylistSearcher.sources import update_lyrics_queue
 from PlaylistSearcher.playlist import playlist_tracks
 from threading import Thread
 import time
 import regex
+import queue
 
 
 def strip_words(words):
@@ -30,6 +31,7 @@ def search_words(list_of_songs, words):
 
 def search_thread(query: WordQuery):
     user = User.query.filter(User.id == query.user).first()
+    q = queue.Queue()
     list_of_songs = playlist_tracks(user, query.playlist)
     threads = []
     words = query.words.lower()
@@ -59,16 +61,14 @@ def search_thread(query: WordQuery):
         copysong.lyrics = song.lyrics
         copysong.source = song.source
         copysong.last_check = song.last_check
-        thread = Thread(target=update_lyrics,
-                        args=[copysong])
-        thread.start()
-        threads.append([thread, copysong, song])
 
-    for couple in threads:
-        thread.join()
-        thread = couple[0]
-        song = couple[1]
-        originalsong = couple[2]
+        thread = Thread(target=update_lyrics_queue,
+                        args=[q, song, copysong])
+        thread.start()
+
+    for counter in range(len(list_of_songs)):
+        originalsong, song = q.get()
+
         originalsong.lyrics = song.lyrics
         originalsong.source = song.source
         originalsong.last_check = song.last_check

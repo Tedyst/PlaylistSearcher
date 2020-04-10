@@ -3,8 +3,14 @@ import PlaylistSearcher.sources.youtube as youtube
 from PlaylistSearcher import Song
 import time
 from PlaylistSearcher import APP, db
+from queue import Queue
 
 SOURCES = [genius]
+
+
+def update_lyrics_queue(q: Queue, song: Song, originalsong: Song):
+    update_lyrics(song)
+    q.put([originalsong, song])
 
 
 def update_lyrics(song: Song):
