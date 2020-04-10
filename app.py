@@ -88,7 +88,7 @@ def playlists():
                     status=200)
 
 
-@APP.route('/search')
+@APP.route('/')
 @login_required
 def search():
     if not current_user.valid():

@@ -66,7 +66,7 @@
                             <h4 class="card-title loading-text"></h4>
 
                             <div class="col-md-2" id="result-card-template" style="display:none;">
-                                <div class="card" style="min-height: 250px;">
+                                <div class="card" style="height: 230px;overflow: hidden;">
                                     <div class="card-content align-self-center" href>
                                         <img src="">
                                         <h6 class="card-title text-center"></h4>
@@ -112,7 +112,7 @@
             lyricscard.style = "";
         }
         remember = data.results;
-        toggledivs("cards");
+        toggledivs("list");
         if(data.results[0].preview_url == null){
             $('#lyrics-player').attr('onclick','');
             $('#player-icon').html("stop");
@@ -127,6 +127,9 @@
         if(audio != null)
             audio.pause();
         audio = null;
+        document.querySelector('#lyrics-card').scrollIntoView({
+            behavior: 'smooth' 
+        });
         for(song in remember){
             if(remember[song].uri == uri){
                 if(remember[song].preview_url == null){
@@ -136,8 +139,8 @@
                     $('#lyrics-player').attr('onclick','play("' + remember[song].uri + '");');
                     $('#player-icon').html("play_arrow");
                 }
-                $('#lyrics-title').html(remember[song].artist + ' - ' + remember[song].name)
-                $('#lyrics-display').html(remember[song].lyrics)
+                $('#lyrics-title').html(remember[song].artist + ' - ' + remember[song].name);
+                $('#lyrics-display').html(remember[song].lyrics);
                 break;
             }
         }
@@ -211,6 +214,9 @@
     function startRefresh(){
         if(audio != null)
             audio.pause();
+        document.querySelector('#result-card').scrollIntoView({
+            behavior: 'smooth' 
+        });
         $('.song-result-card').remove();
         $('.song-result-list').remove();
         doRefresh();
@@ -243,7 +249,4 @@
         })
     }
 </script>
-<Script>
-    refreshInternal("4IOl8MrXPWvHVxo2NpSxwP", "dream");
-</Script>
 {% endblock %}
