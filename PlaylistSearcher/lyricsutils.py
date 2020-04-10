@@ -32,6 +32,11 @@ def search_thread(query: WordQuery):
             query.searched += 1
             continue
 
+        if song.last_check:
+            if time.time() - song.last_check < 86400:
+                query.searched += 1
+                continue
+
         # We cannot move the original object because it is tied to this thread
         copysong = Song(
             song.name, song.artist, song.uri, song.image, song.preview
@@ -46,7 +51,7 @@ def search_thread(query: WordQuery):
         thread = Thread(target=update_lyrics_queue, args=args)
         thread.start()
 
-    for counter in range(len(list_of_songs)):
+    for counter in range(query.total - query.searched):
         originalsong, song = q.get()
         if not threads.empty():
             args = threads.get()
