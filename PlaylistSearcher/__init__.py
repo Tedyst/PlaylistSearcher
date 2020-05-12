@@ -59,6 +59,8 @@ class Song(db.Model):
         data["uri"] = self.uri
         data["image_url"] = self.image
         data["preview_url"] = self.preview
+        if "lyrics_result" in vars(self):
+            data["lyrics_result"] = self.lyrics_result
         return data
 
     @property
@@ -78,6 +80,13 @@ class WordQuery():
         self.searched = 0
         self.notfound = []
         self.total = total
+
+    def equal(self, user, words, playlist):
+        if self.user == user:
+            if self.words == words:
+                if self.playlist == playlist:
+                    return True
+        return False
 
 
 class User(db.Model):

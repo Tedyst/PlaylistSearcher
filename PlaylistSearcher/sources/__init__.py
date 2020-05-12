@@ -8,9 +8,9 @@ from queue import Queue
 SOURCES = [genius]
 
 
-def update_lyrics_queue(q: Queue, song: Song, originalsong: Song):
+def update_lyrics_queue(q: Queue, song: Song, copysong: Song):
     update_lyrics(song)
-    q.put([originalsong, song])
+    q.put([song, copysong])
 
 
 def update_lyrics(song: Song):

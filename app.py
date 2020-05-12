@@ -104,9 +104,9 @@ def search():
 @login_required
 def ajax(playlist_id, words):
     query = None
-    for i in query_queue:
-        if i.user == current_user.id and i.words == words and i.playlist == playlist_id:
-            query = i
+    for query_elem in query_queue:
+        if query_elem.equal(current_user.id, words, playlist_id):
+            query = query_elem
             break
     if query is None:
         query = WordQuery(current_user.id, playlist_id, words,

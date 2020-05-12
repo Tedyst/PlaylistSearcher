@@ -20,22 +20,6 @@ def search_thread(query: WordQuery):
     for song in list_of_songs:
         if type(song) != Song:
             continue
-        if song.lyrics:
-            if len(words) < 8:
-                re = regex.search(
-                    rf'({words}){{e<=1}}', song.lyrics.lower())
-            else:
-                re = regex.search(
-                    rf'({words}){{e<=3}}', song.lyrics.lower())
-            if re is not None:
-                query.result.append(song)
-            query.searched += 1
-            continue
-
-        if song.last_check:
-            if time.time() - song.last_check < 86400:
-                query.searched += 1
-                continue
 
         # We cannot move the original object because it is tied to this thread
         copysong = Song(
@@ -44,30 +28,70 @@ def search_thread(query: WordQuery):
         copysong.lyrics = song.lyrics
         copysong.source = song.source
         copysong.last_check = song.last_check
+        if copysong.lyrics:
+            if len(words) < 8:
+                re = regex.search(
+                    rf'({words}){{e<=1}}', copysong.lyrics.lower())
+            else:
+                re = regex.search(
+                    rf'({words}){{e<=2}}', copysong.lyrics.lower())
+            if re is not None:
+                start, end = re.span()
+                if copysong.lyrics[start:start+2] == "r>":
+                    start += 2
+                elif copysong.lyrics[start] == ">":
+                    start += 1
+                copysong.lyrics = copysong.lyrics[:start] + "<mark>" + \
+                    copysong.lyrics[start:end] + \
+                    "</mark>" + copysong.lyrics[end:]
+                query.result.append(copysong)
+            query.searched += 1
+            continue
+
+        if copysong.last_check:
+            if time.time() - copysong.last_check < 86400:
+                query.searched += 1
+                continue
+
         threads.put([q, song, copysong])
 
+    # Starting the threads
     for counter in range(0, min(10, threads.qsize())):
         args = threads.get()
         thread = Thread(target=update_lyrics_queue, args=args)
         thread.start()
 
+    # Getting the result from the threads
     for counter in range(query.total - query.searched):
-        originalsong, song = q.get()
+        song, copysong = q.get()
         if not threads.empty():
             args = threads.get()
             thread = Thread(target=update_lyrics_queue, args=args)
             thread.start()
 
-        originalsong.lyrics = song.lyrics
-        originalsong.source = song.source
-        originalsong.last_check = song.last_check
-        if song.lyrics:
-            re = regex.search(
-                rf'({words}){{e<=3}}', song.lyrics.lower())
+        # Update song (the one tied to the database)
+        song.lyrics = song.lyrics
+        song.source = song.source
+        song.last_check = song.last_check
+
+        if copysong.lyrics:
+            if len(words) < 8:
+                re = regex.search(
+                    rf'({words}){{e<=1}}', copysong.lyrics.lower())
+            else:
+                re = regex.search(
+                    rf'({words}){{e<=2}}', copysong.lyrics.lower())
             if re is not None:
-                query.result.append(song)
-        else:
-            query.notfound.append(song)
+                start, end = re.span()
+                if copysong.lyrics[start:start+2] == "r>":
+                    start += 2
+                elif copysong.lyrics[start] == ">":
+                    start += 1
+                copysong.lyrics = copysong.lyrics[:start] + "<mark>" + \
+                    copysong.lyrics[start:end] + \
+                    "</mark>" + copysong.lyrics[end:]
+                query.result.append(copysong)
         query.searched += 1
+
     db.session.commit()
     return
