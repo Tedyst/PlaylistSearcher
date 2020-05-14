@@ -31,45 +31,52 @@ def get_lyrics(uri):
                     status=200)
 
 
-@APP.route('/authorization')
-def authorization():
+@APP.route('/api/auth/url')
+def authurl():
     sp_oauth = spotipy.oauth2.SpotifyOAuth(
         config.SPOTIFY_CLIENT_ID,
         config.SPOTIFY_CLIENT_SECRET,
-        url_for('authorization', _external=True),
+        url_for('auth', _external=True),
         scope="user-library-read playlist-read-private playlist-read-collaborative")
-    if current_user.is_authenticated:
-        if current_user.valid():
-            redirect(url_for('search'))
 
-    url = request.url
-    code = sp_oauth.parse_response_code(url)
-    if code:
-        APP.logger.info(
-            "Found Spotify auth code in Request URL!")
-        APP.logger.debug("Spotify auth code is %s", code)
+    url = sp_oauth.get_authorize_url()
+    return {"url": url}
+
+
+@APP.route('/auth')
+def auth():
+    sp_oauth = spotipy.oauth2.SpotifyOAuth(
+        config.SPOTIFY_CLIENT_ID,
+        config.SPOTIFY_CLIENT_SECRET,
+        'http://127.0.0.1:3000/auth',
+        scope="user-library-read playlist-read-private playlist-read-collaborative")
+
+    code = sp_oauth.parse_response_code(request.url)
+    APP.logger.info(
+        "Found Spotify auth code in Request URL!")
+    APP.logger.debug("Spotify auth code is %s", code)
+    try:
         token_info = sp_oauth.get_access_token(code, check_cache=False)
-        token = token_info['access_token']
-        me = spotipy.Spotify(token).me()
-        username = me['id']
+    except spotipy.oauth2.SpotifyOauthError:
+        return {"success": False}
+    token = token_info['access_token']
+    me = spotipy.Spotify(token).me()
+    username = me['id']
 
-        user = User.query.filter(User.username == username).first()
-        if user is None:
-            user = User(username, token)
+    user = User.query.filter(User.username == username).first()
+    if user is None:
+        user = User(username, token)
 
-        user.token = token
-        db.session.add(user)
-        db.session.commit()
-        login_user(user)
-        pint = []
-        for playlistasd in user.playlists():
-            pint.append(playlistasd.id)
-        APP.logger.info("Playlists for %s: %s",
-                        user.username, json.dumps(pint))
-        return redirect(url_for('search'))
-    else:
-        url = sp_oauth.get_authorize_url()
-        return render_template('login.html', auth_url=url)
+    user.token = token
+    db.session.add(user)
+    db.session.commit()
+    login_user(user)
+    pint = []
+    for playlistasd in user.playlists():
+        pint.append(playlistasd.id)
+    APP.logger.info("Playlists for %s: %s",
+                    user.username, json.dumps(pint))
+    return {"success": True}
 
 
 @login_manager.unauthorized_handler
@@ -78,28 +85,17 @@ def unauthorized():
 
 
 @APP.route('/playlists')
-@login_required
 def playlists():
-    string = ""
+    result = {
+        "logged": True,
+        "playlists": {}
+    }
+    if not current_user.is_authenticated:
+        return {"logged": False}
     playlists = playlist.user_playists(current_user)
     for i in playlists:
-        string += i.name + ' - ' + i.id + '<br>'
-    return Response(string,
-                    status=200)
-
-
-@APP.route('/')
-@login_required
-def search():
-    if not current_user.valid():
-        sp_oauth = spotipy.oauth2.SpotifyOAuth(
-            config.SPOTIFY_CLIENT_ID,
-            config.SPOTIFY_CLIENT_SECRET,
-            url_for('authorization', _external=True),
-            scope="user-library-read playlist-read-private playlist-read-collaborative")
-        url = sp_oauth.get_authorize_url()
-        return render_template('login.html', auth_url=url)
-    return render_template('search.html')
+        result["playlists"][i.id] = i.name
+    return result
 
 
 @APP.route('/ajax/<playlist_id>/<words>')
