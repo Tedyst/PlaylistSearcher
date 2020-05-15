@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import { Select, MenuItem, TextField, Grid } from '@material-ui/core';
+import {
+  selectPlaylists
+} from '../store/user';
+import { useSelector, useDispatch } from 'react-redux';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -35,23 +39,18 @@ const useStyles = makeStyles((theme) => ({
 
 export default function PlaylistView() {
     const classes = useStyles();
-    const [Playlists, setPlaylists] = useState(undefined);
-    useEffect(() => {
-      // The url for login
-      fetch('/playlists').then(res => res.json()).then(data => {
-        setPlaylists(data.playlists);
-      });
-    }, []);
+    const playlists = useSelector(selectPlaylists);
+    const dispatch = useDispatch();
 
     let idk = [];
-    if(Playlists !== undefined){
-      for(var key in Playlists) {
+    if(playlists !== undefined){
+      for(var key in playlists) {
         idk.push(
           <MenuItem
             value={key}
             key={key}
             className={classes.fullWidth} >
-                {Playlists[key]}
+                {playlists[key]}
           </MenuItem>
         );
       };
@@ -62,7 +61,7 @@ export default function PlaylistView() {
     };
 
     return (
-        <Container maxWidth="xs">
+        <Container>
             <CssBaseline />
             <div className={classes.paper}>
               <Grid container spacing={2}>
@@ -89,7 +88,6 @@ export default function PlaylistView() {
                     variant="outlined"
                     className={classes.grid} />
                   <Button
-                      type="submit"
                       fullWidth
                       variant="contained"
                       color="primary"
@@ -103,3 +101,4 @@ export default function PlaylistView() {
         </Container>
     )
 }
+

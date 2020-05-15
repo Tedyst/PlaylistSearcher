@@ -7,6 +7,12 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import { Redirect } from 'react-router-dom';
+import {
+  setLogged,
+  selectLogged
+} from '../store/user';
+import { useSelector, useDispatch } from 'react-redux';
+
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -31,7 +37,8 @@ const useStyles = makeStyles((theme) => ({
 export default function Login() {
     const classes = useStyles();
     const [LoginUrl, setLoginUrl] = useState("");
-    const [Logged, setLogged] = useState(false);
+    const logged = useSelector(selectLogged);
+    const dispatch = useDispatch();
 
     let search = window.location.search;
     let params = new URLSearchParams(search);
@@ -48,14 +55,14 @@ export default function Login() {
         // Check if the code works
         fetch('/auth?code=' + code).then(res => res.json()).then(data => {
           console.log(data);
-          if(data.success == true){
+          if(data.success === true){
             console.log("Redirect");
-            setLogged(true);
+            dispatch(setLogged(true));
           }
         });
       }
-    }, []);
-    if(Logged)
+    });
+    if(logged)
       return <Redirect to="/" />
     return loginPage(classes, LoginUrl);
 }

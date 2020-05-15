@@ -1,66 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './App.css';
 import Login from './views/Login';
-import PlaylistView from './views/PlaylistView';
+import ResultView from './views/ResultView';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Link,
   Redirect
 } from "react-router-dom";
+import {
+  setLogged,
+  selectLogged,
+  setPlaylists
+} from './store/user';
 
-let authenticated = true;
-
-function requireAuth(nextState, replace, next) {
-  if (!authenticated) {
-    replace({
-      pathname: "/auth",
-      state: {nextPathname: nextState.location.pathname}
-    });
-  }
-  console.log(nextState);
-  next();
-}
 
 function App() {
-  const [Logged, setLogged] = useState(true);
-  fetch('/playlists').then(res => res.json()).then(data => {
-      authenticated = data.logged;
-      console.log(authenticated);
-      setLogged(data.logged);
-    });
-  if(!authenticated){
-    return (
-      <Router>
-        <Switch>
-          <Route path="/auth">
-            <Login />
-          </Route>
-          <Route path="/test" onEnter={requireAuth}>
-            <Home />
-          </Route>
-          <Route path="/" onEnter={requireAuth}>
-            <PlaylistView />
-          </Route>
-        </Switch>
-        <Redirect to="/auth" />
-      </Router>
-    );
-  }
+  const logged = useSelector(selectLogged);
+  const dispatch = useDispatch();
+  console.log("Logged is " + logged);
+  if(!logged){
+    fetch('/playlists').then(res => res.json()).then(data => {
+      console.log("setLogged" + data.logged);
+        dispatch(setLogged(data.logged));
+        dispatch(setPlaylists(data.playlists));
+      });
+    }
+  let redirect = null;
+  if(!logged){
+    redirect = <Redirect to="/auth" />
+  } 
   return (
     <Router>
       <Switch>
         <Route path="/auth">
           <Login />
         </Route>
-        <Route path="/test" onEnter={requireAuth}>
+        <Route path="/test">
           <Home />
         </Route>
-        <Route path="/" onEnter={requireAuth}>
-          <PlaylistView />
+        <Route path="/">
+          <ResultView />
         </Route>
       </Switch>
+      {redirect}
     </Router>
   );
 }
